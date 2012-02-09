@@ -1,0 +1,20 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>product name:</b>
+  <%= @demand.product_id %>
+</p>
+
+<p>
+  <b>period name:</b>
+  <%= @demand.period_id %>
+</p>
+
+<p>
+  <b>demand quantity:</b>
+  <%= @demand.demand_quantity %>
+</p>
+
+
+<%= link_to 'Edit', edit_demand_path(@demand) %> |
+<%= link_to 'Back', demands_path %>

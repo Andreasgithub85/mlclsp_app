@@ -1,0 +1,25 @@
+<h1>Listing follower_products</h1>
+
+<table>
+  <tr>
+    <th>follower name</th>
+    <th>product name</th>
+    <th>coefficient</th>
+    <th></th>
+  </tr>
+
+<% @follower_products.each do |follower_product| %>
+  <tr>
+    <td><%= follower_product.follower.follower_name %></td>
+    <td><%= follower_product.product.product_name %></td>
+    <td><%= follower_product.coefficient %></td>
+    <td><%= link_to 'Show', follower_product %></td>
+    <td><%= link_to 'Edit', edit_follower_product_path(follower_product) %></td>
+    <td><%= link_to 'Destroy', follower_product, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Follower product', new_follower_product_path %>

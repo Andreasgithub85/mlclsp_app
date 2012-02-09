@@ -1,0 +1,18 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>follower name:</b>
+  <%= @follower_product.product_id %>
+</p>
+<p>
+  <b>product name:</b>
+  <%= @follower_product.follower_id %>
+</p>
+<p>
+  <b>Coefficient:</b>
+  <%= @follower_product.coefficient %>
+</p>
+
+
+<%= link_to 'Edit', edit_follower_product_path(@follower_product) %> |
+<%= link_to 'Back', follower_products_path %>

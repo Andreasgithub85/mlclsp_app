@@ -1,9 +1,9 @@
 class CreateDemands < ActiveRecord::Migration
   def self.up
     create_table :demands do |t|
-      t.integer :period
-      t.integer :demand
-      t.integer :capacity
+      t.integer :product_id
+      t.integer :period_id
+      t.integer :demand_quantity
 
       t.timestamps
     end
