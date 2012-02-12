@@ -1,0 +1,19 @@
+<h1>Showing the results</h1>
+<%= @title= "Result Inventory Quantity" %>
+<table>
+  <tr>
+    <th>product name</th>
+    <th>period name</th>
+    <th>inventory quantity</th>
+    <th></th>
+  </tr>
+
+<% InventorySolution.all.each do |ps| %>
+  <tr>
+    <td><%= ps.product_name %></td>
+    <td><%= ps.period_name %></td>
+    <td><%= ps.inventory %></td>
+
+  </tr>
+<% end %>
+</table>

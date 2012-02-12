@@ -2,6 +2,7 @@ class PeriodsController < ApplicationController
   # GET /periods
   # GET /periods.json
   def index
+    @title = "Listing Periods"
     @periods = Period.all
 
     respond_to do |format|
@@ -13,6 +14,7 @@ class PeriodsController < ApplicationController
   # GET /periods/1
   # GET /periods/1.json
   def show
+    @title = "Show Periods"
     @period = Period.find(params[:id])
 
     respond_to do |format|
@@ -24,6 +26,7 @@ class PeriodsController < ApplicationController
   # GET /periods/new
   # GET /periods/new.json
   def new
+    @title = "New Periods"
     @period = Period.new
 
     respond_to do |format|
@@ -34,6 +37,7 @@ class PeriodsController < ApplicationController
 
   # GET /periods/1/edit
   def edit
+    @title = "Edit Periods"
     @period = Period.find(params[:id])
   end
 

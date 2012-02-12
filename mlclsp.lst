@@ -1,0 +1,742 @@
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  *mlclsp
+   2  *Autor:
+   3  *Stand: 31.01.2012
+   4  option optcr=0.00;
+   5  option limrow = 20;
+INCLUDE    C:\Sites\mlclsp_app\MLCLSP_Input_Instanz1.inc
+   7  Set k /
+   8  k1
+   9  k2
+  10  k3
+  11  k4
+  12  k5
+  13  /
+  14   
+  15  t /
+  16  t1
+  17  t2
+  18  t3
+  19  t4
+  20  /
+  21   
+  22  j /
+  23  j1
+  24  j2
+  25  /;
+  26   
+  27  alias(k,i);
+  28  Set NF(k,i);
+  29  NF(k,i) = no;
+  30  NF( 'k4', 'k5') = yes;
+  31  NF( 'k3', 'k5') = yes;
+  32  NF( 'k1', 'k4') = yes;
+  33  NF( 'k1', 'k3') = yes;
+  34  NF( 'k2', 'k3') = yes;
+  35  Set PR(k,j);
+  36  PR(k,j) = no;
+  37  PR( 'k1', 'j1') = yes;
+  38  PR( 'k2', 'j1') = yes;
+  39  PR( 'k3', 'j2') = yes;
+  40  PR( 'k4', 'j2') = yes;
+  41  PR( 'k5', 'j1') = yes;
+  42   
+  43   
+  44  Parameters
+  45    h(k) /
+  46  k1  40
+  47  k2  35
+  48  k3  15
+  49  k4  4
+  50  k5  3
+  51  /
+  52   
+  53   
+  54   s(k) /
+  55  k1  200
+  56  k2  500
+  57  k3  300
+  58  k4  1000
+  59  k5  300
+  60  /
+  61   
+  62   
+  63   tb(k) /
+  64  k1  1
+  65  k2  1
+  66  k3  1
+  67  k4  1
+  68  k5  1
+  69  /
+  70   
+  71   
+  72   tr(k) /
+  73  k1  20
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+  74  k2  30
+  75  k3  10
+  76  k4  20
+  77  k5  10
+  78  /
+  79   
+  80   
+  81   z(k) /
+  82  k1  1
+  83  k2  1
+  84  k3  1
+  85  k4  1
+  86  k5  1
+  87  /
+  88   
+  89   
+  90   y0(k) /
+  91  k1  50
+  92  k2  120
+  93  k3  100
+  94  k4  110
+  95  k5  80
+  96  /
+  97   
+  98   
+  99  a(k,i) /
+ 100  k5.k4 1
+ 101  k5.k3 1
+ 102  k4.k1 1
+ 103  k3.k1 1
+ 104  k3.k2 1
+ 105  /
+ 106   
+ 107  b(j,t) /
+ 108  j1.t1 150
+ 109  j1.t2 150
+ 110  j1.t3 150
+ 111  j1.t4 150
+ 112  j2.t1 150
+ 113  j2.t2 150
+ 114  j2.t3 150
+ 115  j2.t4 150
+ 116  /
+ 117   
+ 118  d(k,t) /
+ 119  k1.t1 10
+ 120  k1.t2 20
+ 121  k1.t3 30
+ 122  k1.t4 80
+ 123  k2.t1 20
+ 124  k2.t2 80
+ 125  k2.t3 50
+ 126  k2.t4 90
+ 127  k3.t3 30
+ 128  k4.t4 80
+ 129  /;
+ 130   
+ 131  Scalar M;
+ 132  M = 100000;
+ 133   
+ 134  Variables
+ 135           F Zielfunktionswert;
+ 136  Positive variables
+ 137           q(k,t) Losgroe�e fuer Arbeitsgang k und Periode t
+ 138           y(k,t) Lagerbestand fuer Produkt k am Ende der Periode t
+ 139  ;
+ 140  Binary variables
+ 141           g(k,t) binaere Ruestvariable fuer Arbeitsgang bzw. Produkt k in Periode t
+ 142  ;
+ 143   
+ 144  Equations
+ 145           Ziel Zielfunktion Minimierung der Kosten
+ 146           Bilanz(k,t) Lagerbilanz f�r Produkt k und Ressource j
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 147           Kapa(j,t) Kapazitaetsrestriktion fuer Ressource j und Periode t
+ 148           Restr(k,t)
+ 149  ;
+ 150   
+ 151  Ziel ..
+ 152           F =e= sum((k,t),s(k)*g(k,t)+h(k)*y(k,t));
+ 153   
+ 154  Bilanz(k,t)..
+ 155           y0(k)$(ord(t)=1) + y(k,t-1)$(ord(t)>1) + q(k,t-z(k))
+ 156           - sum(i$NF(i,k), a(k,i) * q(i,t)) - y(k,t) =e= d(k,t);
+ 157   
+ 158  Kapa(j,t)..
+ 159           sum(k$PR(k,j),tb(k)*q(k,t)+tr(k)*g(k,t)) =l= b(j,t);
+ 160   
+ 161  Restr(k,t)..
+ 162           q(k,t)-M*g(k,t) =l= 0;
+ 163   
+ 164   
+ 165  model mlclsp /
+ 166           Ziel
+ 167           , Bilanz
+ 168           , Kapa
+ 169           , Restr/;
+ 170   
+ 171  solve mlclsp minimizing F using mip;
+ 172   
+ 173  display q.l, y.l, g.l;
+ 174   
+ 175  file outputfile1 / 'mlclsp_solution1.txt'/;
+ 176  put outputfile1;
+ 177   
+ 178   
+ 179  loop(k,
+ 180       loop(t$(q.l(k,t)>0),
+ 181   
+ 182               put k.tl:0, ' ; ' t.tl:0, ' ; ' q.l(k,t) /
+ 183   
+ 184       );
+ 185  );
+ 186   
+ 187  putclose outputfile1;
+ 188   
+ 189  file outputfile2 / 'mlclsp_solution2.txt'/;
+ 190  put outputfile2;
+ 191   
+ 192  loop(k,
+ 193      loop(t$(y.l(k,t)>0),
+ 194   
+ 195              put k.tl:0, ' ; ' t.tl:0, ' ; ' y.l(k,t) /
+ 196   
+ 197      );
+ 198  );
+ 199   
+ 200  putclose outputfile2;
+ 201   
+ 202  file outputfile3 / 'mlclsp_solution3.txt'/;
+ 203  put outputfile3;
+ 204   
+ 205  loop(k,
+ 206      loop(t$(g.l(k,t)>0),
+ 207   
+ 208              put k.tl:0, ' ; ' t.tl:0, ' ; ' g.l(k,t) /
+ 209   
+ 210      );
+ 211  );
+ 212   
+ 213  putclose outputfile3;
+ 214   
+ 215   
+ 216  file outputfile4 / 'ofv.txt'/;
+ 217  put outputfile4;
+ 218   
+ 219   
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 220  put 'ofv:  ',f.l /
+ 221  put '**************************'
+ 222   
+ 223  putclose outputfile4;
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Sites\mlclsp_app\mlclsp.gms
+     2        6 INCLUDE        1       6  .C:\Sites\mlclsp_app\MLCLSP_Input_Instanz1.inc
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 Mb  WEX237-237 Jul 21, 2011
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE mlclsp Using MIP From line 171
+
+
+---- Ziel  =E=  Zielfunktion Minimierung der Kosten
+
+Ziel..  F - 40*y(k1,t1) - 40*y(k1,t2) - 40*y(k1,t3) - 40*y(k1,t4) - 35*y(k2,t1) - 35*y(k2,t2) - 35*y(k2,t3) - 35*y(k2,t4) - 15*y(k3,t1) - 15*y(k3,t2) - 15*y(k3,t3) - 15*y(k3,t4) - 4*y(k4,t1) - 4*y(k4,t2) - 4*y(k4,t3) - 4*y(k4,t4) - 3*y(k5,t1) - 3*y(k5,t2)
+     
+      - 3*y(k5,t3) - 3*y(k5,t4) - 200*g(k1,t1) - 200*g(k1,t2) - 200*g(k1,t3) - 200*g(k1,t4) - 500*g(k2,t1) - 500*g(k2,t2) - 500*g(k2,t3) - 500*g(k2,t4) - 300*g(k3,t1) - 300*g(k3,t2) - 300*g(k3,t3) - 300*g(k3,t4) - 1000*g(k4,t1) - 1000*g(k4,t2)
+     
+      - 1000*g(k4,t3) - 1000*g(k4,t4) - 300*g(k5,t1) - 300*g(k5,t2) - 300*g(k5,t3) - 300*g(k5,t4) =E= 0 ; (LHS = 0)
+     
+
+---- Bilanz  =E=  Lagerbilanz f�r Produkt k und Ressource j
+
+Bilanz(k1,t1)..  - y(k1,t1) =E= -40 ; (LHS = 0, INFES = 40 ****)
+     
+Bilanz(k1,t2)..  q(k1,t1) + y(k1,t1) - y(k1,t2) =E= 20 ; (LHS = 0, INFES = 20 ****)
+     
+Bilanz(k1,t3)..  q(k1,t2) + y(k1,t2) - y(k1,t3) =E= 30 ; (LHS = 0, INFES = 30 ****)
+     
+Bilanz(k1,t4)..  q(k1,t3) + y(k1,t3) - y(k1,t4) =E= 80 ; (LHS = 0, INFES = 80 ****)
+     
+Bilanz(k2,t1)..  - y(k2,t1) =E= -100 ; (LHS = 0, INFES = 100 ****)
+     
+Bilanz(k2,t2)..  q(k2,t1) + y(k2,t1) - y(k2,t2) =E= 80 ; (LHS = 0, INFES = 80 ****)
+     
+Bilanz(k2,t3)..  q(k2,t2) + y(k2,t2) - y(k2,t3) =E= 50 ; (LHS = 0, INFES = 50 ****)
+     
+Bilanz(k2,t4)..  q(k2,t3) + y(k2,t3) - y(k2,t4) =E= 90 ; (LHS = 0, INFES = 90 ****)
+     
+Bilanz(k3,t1)..  - q(k1,t1) - q(k2,t1) - y(k3,t1) =E= -100 ; (LHS = 0, INFES = 100 ****)
+     
+Bilanz(k3,t2)..  - q(k1,t2) - q(k2,t2) + q(k3,t1) + y(k3,t1) - y(k3,t2) =E= 0 ; (LHS = 0)
+     
+Bilanz(k3,t3)..  - q(k1,t3) - q(k2,t3) + q(k3,t2) + y(k3,t2) - y(k3,t3) =E= 30 ; (LHS = 0, INFES = 30 ****)
+     
+Bilanz(k3,t4)..  - q(k1,t4) - q(k2,t4) + q(k3,t3) + y(k3,t3) - y(k3,t4) =E= 0 ; (LHS = 0)
+     
+Bilanz(k4,t1)..  - q(k1,t1) - y(k4,t1) =E= -110 ; (LHS = 0, INFES = 110 ****)
+     
+Bilanz(k4,t2)..  - q(k1,t2) + q(k4,t1) + y(k4,t1) - y(k4,t2) =E= 0 ; (LHS = 0)
+     
+Bilanz(k4,t3)..  - q(k1,t3) + q(k4,t2) + y(k4,t2) - y(k4,t3) =E= 0 ; (LHS = 0)
+     
+Bilanz(k4,t4)..  - q(k1,t4) + q(k4,t3) + y(k4,t3) - y(k4,t4) =E= 80 ; (LHS = 0, INFES = 80 ****)
+     
+Bilanz(k5,t1)..  - q(k3,t1) - q(k4,t1) - y(k5,t1) =E= -80 ; (LHS = 0, INFES = 80 ****)
+     
+Bilanz(k5,t2)..  - q(k3,t2) - q(k4,t2) + q(k5,t1) + y(k5,t1) - y(k5,t2) =E= 0 ; (LHS = 0)
+     
+Bilanz(k5,t3)..  - q(k3,t3) - q(k4,t3) + q(k5,t2) + y(k5,t2) - y(k5,t3) =E= 0 ; (LHS = 0)
+     
+Bilanz(k5,t4)..  - q(k3,t4) - q(k4,t4) + q(k5,t3) + y(k5,t3) - y(k5,t4) =E= 0 ; (LHS = 0)
+     
+
+---- Kapa  =L=  Kapazitaetsrestriktion fuer Ressource j und Periode t
+
+Kapa(j1,t1)..  q(k1,t1) + q(k2,t1) + q(k5,t1) + 20*g(k1,t1) + 30*g(k2,t1) + 10*g(k5,t1) =L= 150 ; (LHS = 0)
+     
+Kapa(j1,t2)..  q(k1,t2) + q(k2,t2) + q(k5,t2) + 20*g(k1,t2) + 30*g(k2,t2) + 10*g(k5,t2) =L= 150 ; (LHS = 0)
+     
+Kapa(j1,t3)..  q(k1,t3) + q(k2,t3) + q(k5,t3) + 20*g(k1,t3) + 30*g(k2,t3) + 10*g(k5,t3) =L= 150 ; (LHS = 0)
+     
+Kapa(j1,t4)..  q(k1,t4) + q(k2,t4) + q(k5,t4) + 20*g(k1,t4) + 30*g(k2,t4) + 10*g(k5,t4) =L= 150 ; (LHS = 0)
+     
+Kapa(j2,t1)..  q(k3,t1) + q(k4,t1) + 10*g(k3,t1) + 20*g(k4,t1) =L= 150 ; (LHS = 0)
+     
+Kapa(j2,t2)..  q(k3,t2) + q(k4,t2) + 10*g(k3,t2) + 20*g(k4,t2) =L= 150 ; (LHS = 0)
+     
+Kapa(j2,t3)..  q(k3,t3) + q(k4,t3) + 10*g(k3,t3) + 20*g(k4,t3) =L= 150 ; (LHS = 0)
+     
+Kapa(j2,t4)..  q(k3,t4) + q(k4,t4) + 10*g(k3,t4) + 20*g(k4,t4) =L= 150 ; (LHS = 0)
+     
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE mlclsp Using MIP From line 171
+
+
+---- Restr  =L=  
+
+Restr(k1,t1)..  q(k1,t1) - 100000*g(k1,t1) =L= 0 ; (LHS = 0)
+     
+Restr(k1,t2)..  q(k1,t2) - 100000*g(k1,t2) =L= 0 ; (LHS = 0)
+     
+Restr(k1,t3)..  q(k1,t3) - 100000*g(k1,t3) =L= 0 ; (LHS = 0)
+     
+Restr(k1,t4)..  q(k1,t4) - 100000*g(k1,t4) =L= 0 ; (LHS = 0)
+     
+Restr(k2,t1)..  q(k2,t1) - 100000*g(k2,t1) =L= 0 ; (LHS = 0)
+     
+Restr(k2,t2)..  q(k2,t2) - 100000*g(k2,t2) =L= 0 ; (LHS = 0)
+     
+Restr(k2,t3)..  q(k2,t3) - 100000*g(k2,t3) =L= 0 ; (LHS = 0)
+     
+Restr(k2,t4)..  q(k2,t4) - 100000*g(k2,t4) =L= 0 ; (LHS = 0)
+     
+Restr(k3,t1)..  q(k3,t1) - 100000*g(k3,t1) =L= 0 ; (LHS = 0)
+     
+Restr(k3,t2)..  q(k3,t2) - 100000*g(k3,t2) =L= 0 ; (LHS = 0)
+     
+Restr(k3,t3)..  q(k3,t3) - 100000*g(k3,t3) =L= 0 ; (LHS = 0)
+     
+Restr(k3,t4)..  q(k3,t4) - 100000*g(k3,t4) =L= 0 ; (LHS = 0)
+     
+Restr(k4,t1)..  q(k4,t1) - 100000*g(k4,t1) =L= 0 ; (LHS = 0)
+     
+Restr(k4,t2)..  q(k4,t2) - 100000*g(k4,t2) =L= 0 ; (LHS = 0)
+     
+Restr(k4,t3)..  q(k4,t3) - 100000*g(k4,t3) =L= 0 ; (LHS = 0)
+     
+Restr(k4,t4)..  q(k4,t4) - 100000*g(k4,t4) =L= 0 ; (LHS = 0)
+     
+Restr(k5,t1)..  q(k5,t1) - 100000*g(k5,t1) =L= 0 ; (LHS = 0)
+     
+Restr(k5,t2)..  q(k5,t2) - 100000*g(k5,t2) =L= 0 ; (LHS = 0)
+     
+Restr(k5,t3)..  q(k5,t3) - 100000*g(k5,t3) =L= 0 ; (LHS = 0)
+     
+Restr(k5,t4)..  q(k5,t4) - 100000*g(k5,t4) =L= 0 ; (LHS = 0)
+     
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE mlclsp Using MIP From line 171
+
+
+---- F  Zielfunktionswert
+
+F
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       Ziel
+
+
+---- q  Losgroe�e fuer Arbeitsgang k und Periode t
+
+q(k1,t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       Bilanz(k1,t2)
+       -1       Bilanz(k3,t1)
+       -1       Bilanz(k4,t1)
+        1       Kapa(j1,t1)
+        1       Restr(k1,t1)
+
+q(k1,t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       Bilanz(k1,t3)
+       -1       Bilanz(k3,t2)
+       -1       Bilanz(k4,t2)
+        1       Kapa(j1,t2)
+        1       Restr(k1,t2)
+
+q(k1,t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       Bilanz(k1,t4)
+       -1       Bilanz(k3,t3)
+       -1       Bilanz(k4,t3)
+        1       Kapa(j1,t3)
+        1       Restr(k1,t3)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- y  Lagerbestand fuer Produkt k am Ende der Periode t
+
+y(k1,t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -40       Ziel
+       -1       Bilanz(k1,t1)
+        1       Bilanz(k1,t2)
+
+y(k1,t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -40       Ziel
+       -1       Bilanz(k1,t2)
+        1       Bilanz(k1,t3)
+
+y(k1,t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -40       Ziel
+       -1       Bilanz(k1,t3)
+        1       Bilanz(k1,t4)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- g  binaere Ruestvariable fuer Arbeitsgang bzw. Produkt k in Periode t
+
+g(k1,t1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -200       Ziel
+       20       Kapa(j1,t1)
+  -100000       Restr(k1,t1)
+
+g(k1,t2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -200       Ziel
+       20       Kapa(j1,t2)
+  -100000       Restr(k1,t2)
+
+g(k1,t3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                         02/12/12 13:16:20 Page 9
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE mlclsp Using MIP From line 171
+
+
+     g  binaere Ruestvariable fuer Arbeitsgang bzw. Produkt k in Periode t
+
+     -200       Ziel
+       20       Kapa(j1,t3)
+  -100000       Restr(k1,t3)
+
+REMAINING 17 ENTRIES SKIPPED
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                        02/12/12 13:16:20 Page 10
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE mlclsp Using MIP From line 171
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           49
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           61
+NON ZERO ELEMENTS           191     DISCRETE VARIABLES         20
+
+
+GENERATION TIME      =        0.015 SECONDS      4 Mb  WEX237-237 Jul 21, 2011
+
+
+EXECUTION TIME       =        0.015 SECONDS      4 Mb  WEX237-237 Jul 21, 2011
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                        02/12/12 13:16:20 Page 11
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE mlclsp Using MIP From line 171
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mlclsp              OBJECTIVE  F
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  171
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            15640.0000
+
+ RESOURCE USAGE, LIMIT          0.032      1000.000
+ ITERATION COUNT, LIMIT       142    2000000000
+
+IBM ILOG CPLEX   Jul 14, 2011 23.7.2 WEX 27052.27054 WEI x86_64/MS Windows
+Cplex 12.3.0.0
+
+MIP status(101): integer optimal solution
+Fixing integer variables, and solving final LP...
+Fixed MIP status(1): optimal
+Proven optimal solution.
+
+MIP Solution:        15640.000000    (135 iterations, 21 nodes)
+Final Solve:         15640.000000    (7 iterations)
+
+Best possible:       15640.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU Ziel                .              .              .             1.0000      
+
+  Ziel  Zielfunktion Minimierung der Kosten
+
+---- EQU Bilanz  Lagerbilanz f�r Produkt k und Ressource j
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+k1.t1       -40.0000       -40.0000       -40.0000       -67.0000      
+k1.t2        20.0000        20.0000        20.0000       -27.0000      
+k1.t3        30.0000        30.0000        30.0000        13.0000      
+k1.t4        80.0000        80.0000        80.0000        34.0000      
+k2.t1      -100.0000      -100.0000      -100.0000       -70.0000      
+k2.t2        80.0000        80.0000        80.0000       -35.0000      
+k2.t3        50.0000        50.0000        50.0000         EPS         
+k2.t4        90.0000        90.0000        90.0000        35.0000      
+k3.t1      -100.0000      -100.0000      -100.0000       -18.0000      
+k3.t2          .              .              .            -3.0000      
+k3.t3        30.0000        30.0000        30.0000         EPS         
+k3.t4          .              .              .           -15.0000      
+k4.t1      -110.0000      -110.0000      -110.0000        -9.0000      
+k4.t2          .              .              .            -5.0000      
+k4.t3          .              .              .            -1.0000      
+k4.t4        80.0000        80.0000        80.0000         3.0000      
+k5.t1       -80.0000       -80.0000       -80.0000        -3.0000      
+k5.t2          .              .              .             EPS         
+k5.t3          .              .              .             3.0000      
+k5.t4          .              .              .            -3.0000      
+
+---- EQU Kapa  Kapazitaetsrestriktion fuer Ressource j und Periode t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+j1.t1        -INF          150.0000       150.0000          .          
+j1.t2        -INF          150.0000       150.0000        -3.0000      
+j1.t3        -INF          150.0000       150.0000       -35.0000      
+j1.t4        -INF             .           150.0000          .          
+j2.t1        -INF           20.0000       150.0000          .          
+j2.t2        -INF          140.0000       150.0000          .          
+j2.t3        -INF           80.0000       150.0000          .          
+j2.t4        -INF             .           150.0000          .          
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                        02/12/12 13:16:20 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE mlclsp Using MIP From line 171
+
+
+---- EQU Restr  
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+k1.t1        -INF       -99990.0000          .              .          
+k1.t2        -INF             .              .           -18.0000      
+k1.t3        -INF       -99920.0000          .              .          
+k1.t4        -INF             .              .           -12.0000      
+k2.t1        -INF             .              .              .          
+k2.t2        -INF       -99900.0000          .              .          
+k2.t3        -INF       -99980.0000          .              .          
+k2.t4        -INF             .              .           -15.0000      
+k3.t1        -INF       -99990.0000          .              .          
+k3.t2        -INF       -99870.0000          .              .          
+k3.t3        -INF             .              .              .          
+k3.t4        -INF             .              .            -3.0000      
+k4.t1        -INF             .              .              .          
+k4.t2        -INF             .              .              .          
+k4.t3        -INF       -99940.0000          .              .          
+k4.t4        -INF             .              .            -3.0000      
+k5.t1        -INF       -99890.0000          .              .          
+k5.t2        -INF       -99990.0000          .              .          
+k5.t3        -INF             .              .              .          
+k5.t4        -INF             .              .              .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR F                 -INF        15640.0000        +INF             .          
+
+  F  Zielfunktionswert
+
+---- VAR q  Losgroe�e fuer Arbeitsgang k und Periode t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+k1.t1          .            10.0000        +INF             .          
+k1.t2          .              .            +INF             .          
+k1.t3          .            80.0000        +INF             .          
+k1.t4          .              .            +INF             .          
+k2.t1          .              .            +INF           17.0000      
+k2.t2          .           100.0000        +INF             .          
+k2.t3          .            20.0000        +INF             .          
+k2.t4          .              .            +INF             .          
+k3.t1          .            10.0000        +INF             .          
+k3.t2          .           130.0000        +INF             .          
+k3.t3          .              .            +INF           18.0000      
+k3.t4          .              .            +INF             .          
+k4.t1          .              .            +INF            2.0000      
+k4.t2          .              .            +INF            1.0000      
+k4.t3          .            60.0000        +INF             .          
+k4.t4          .              .            +INF             .          
+k5.t1          .           110.0000        +INF             .          
+k5.t2          .            10.0000        +INF             .          
+k5.t3          .              .            +INF           38.0000      
+k5.t4          .              .            +INF            EPS         
+
+---- VAR y  Lagerbestand fuer Produkt k am Ende der Periode t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+k1.t1          .            40.0000        +INF             .          
+k1.t2          .            30.0000        +INF             .          
+k1.t3          .              .            +INF           19.0000      
+k1.t4          .              .            +INF           74.0000      
+k2.t1          .           100.0000        +INF             .          
+k2.t2          .            20.0000        +INF             .          
+k2.t3          .            70.0000        +INF             .          
+k2.t4          .              .            +INF           70.0000      
+k3.t1          .            90.0000        +INF             .          
+k3.t2          .              .            +INF           12.0000      
+k3.t3          .              .            +INF           30.0000      
+k3.t4          .              .            +INF             .          
+k4.t1          .           100.0000        +INF             .          
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                        02/12/12 13:16:20 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE mlclsp Using MIP From line 171
+
+
+     VAR y  Lagerbestand fuer Produkt k am Ende der Periode t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+k4.t2          .           100.0000        +INF             .          
+k4.t3          .            20.0000        +INF             .          
+k4.t4          .              .            +INF            7.0000      
+k5.t1          .            70.0000        +INF             .          
+k5.t2          .            50.0000        +INF             .          
+k5.t3          .              .            +INF            9.0000      
+k5.t4          .              .            +INF             .          
+
+---- VAR g  binaere Ruestvariable fuer Arbeitsgang bzw. Produkt k in Periode t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+k1.t1          .             1.0000         1.0000       200.0000      
+k1.t2          .              .             1.0000   -1.799740E+6      
+k1.t3          .             1.0000         1.0000       900.0000      
+k1.t4          .              .             1.0000   -1.199800E+6      
+k2.t1          .              .             1.0000       500.0000      
+k2.t2          .             1.0000         1.0000       590.0000      
+k2.t3          .             1.0000         1.0000      1550.0000      
+k2.t4          .              .             1.0000   -1.499500E+6      
+k3.t1          .             1.0000         1.0000       300.0000      
+k3.t2          .             1.0000         1.0000       300.0000      
+k3.t3          .              .             1.0000       300.0000      
+k3.t4          .              .             1.0000   -299700.0000      
+k4.t1          .              .             1.0000      1000.0000      
+k4.t2          .              .             1.0000      1000.0000      
+k4.t3          .             1.0000         1.0000      1000.0000      
+k4.t4          .              .             1.0000   -299000.0000      
+k5.t1          .             1.0000         1.0000       300.0000      
+k5.t2          .             1.0000         1.0000       330.0000      
+k5.t3          .              .             1.0000       650.0000      
+k5.t4          .              .             1.0000       300.0000      
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS Rev 237  WEX-WEI 23.7.2 x86_64/MS Windows                                                                                                                                                                                        02/12/12 13:16:20 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+----    173 VARIABLE q.L  Losgroe�e fuer Arbeitsgang k und Periode t
+
+            t1          t2          t3
+
+k1      10.000                  80.000
+k2                 100.000      20.000
+k3      10.000     130.000
+k4                              60.000
+k5     110.000      10.000
+
+
+----    173 VARIABLE y.L  Lagerbestand fuer Produkt k am Ende der Periode t
+
+            t1          t2          t3
+
+k1      40.000      30.000
+k2     100.000      20.000      70.000
+k3      90.000
+k4     100.000     100.000      20.000
+k5      70.000      50.000
+
+
+----    173 VARIABLE g.L  binaere Ruestvariable fuer Arbeitsgang bzw. Produkt k in Periode t
+
+            t1          t2          t3
+
+k1       1.000                   1.000
+k2                   1.000       1.000
+k3       1.000       1.000
+k4                               1.000
+k5       1.000       1.000
+
+
+**** REPORT FILE SUMMARY
+
+outputfile1 C:\Sites\mlclsp_app\mlclsp_solution1.txt
+outputfile2 C:\Sites\mlclsp_app\mlclsp_solution2.txt
+outputfile3 C:\Sites\mlclsp_app\mlclsp_solution3.txt
+outputfile4 C:\Sites\mlclsp_app\ofv.txt
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 Mb  WEX237-237 Jul 21, 2011
+
+
+USER: Stefan Helber                                  G110217/0001AH-WIN
+      Leibniz University Hannover, Lehrstuhl fuer ProduktionswirtDC6657
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Sites\mlclsp_app\mlclsp.gms
+Output     C:\Sites\mlclsp_app\mlclsp.lst

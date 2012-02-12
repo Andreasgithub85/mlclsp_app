@@ -2,6 +2,7 @@ class DemandsController < ApplicationController
   # GET /demands
   # GET /demands.json
   def index
+    @title= "Listing Demands"
     @demands = Demand.all
 
     respond_to do |format|
@@ -13,6 +14,7 @@ class DemandsController < ApplicationController
   # GET /demands/1
   # GET /demands/1.json
   def show
+    @title= "Show Demands"
     @demand = Demand.find(params[:id])
 
     respond_to do |format|
@@ -24,6 +26,7 @@ class DemandsController < ApplicationController
   # GET /demands/new
   # GET /demands/new.json
   def new
+    @title= "New Demands"
     @demand = Demand.new
 
     respond_to do |format|
@@ -34,6 +37,7 @@ class DemandsController < ApplicationController
 
   # GET /demands/1/edit
   def edit
+    @title= "Edit Demands"
     @demand = Demand.find(params[:id])
   end
 

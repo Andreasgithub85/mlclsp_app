@@ -1,0 +1,19 @@
+<h1>Showing the results</h1>
+<%= @title= "Result Production Quantity" %>
+<table>
+  <tr>
+    <th>product name</th>
+    <th>period name</th>
+    <th>production quantity</th>
+    <th></th>
+  </tr>
+
+<% ProblemSolution.all.each do |ps| %>
+  <tr>
+    <td><%= ps.product_name %></td>
+    <td><%= ps.period_name %></td>
+    <td><%= ps.production_quantity %></td>
+
+  </tr>
+<% end %>
+</table>

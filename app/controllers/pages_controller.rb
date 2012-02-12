@@ -3,5 +3,9 @@ class PagesController < ApplicationController    # PagesController erbt Objekte 
     @title = "Home"                          # Definition der Instanzvariable @title
   end
 
+  def about
+    @title = "About"
+  end
+
 
 end

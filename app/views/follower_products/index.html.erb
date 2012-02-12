@@ -2,16 +2,16 @@
 
 <table>
   <tr>
-    <th>follower name</th>
     <th>product name</th>
+    <th>follower name</th>
     <th>coefficient</th>
     <th></th>
   </tr>
 
 <% @follower_products.each do |follower_product| %>
   <tr>
-    <td><%= follower_product.follower.follower_name %></td>
     <td><%= follower_product.product.product_name %></td>
+    <td><%= follower_product.follower.follower_name %></td>
     <td><%= follower_product.coefficient %></td>
     <td><%= link_to 'Show', follower_product %></td>
     <td><%= link_to 'Edit', edit_follower_product_path(follower_product) %></td>
