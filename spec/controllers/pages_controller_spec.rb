@@ -3,16 +3,31 @@ require 'spec_helper'
 describe PagesController do
   render_views
 
-  describe "GET 'home'" do                    # Test auf Existenz der Seite
+  describe "GET 'home'" do
     it "should be successful" do
       get 'home'
       response.should be_success
     end
+
+
+    it "should have the right title" do
+      get 'home'
+      response.should have_selector("title",
+                    :content =>  "Home")
+    end
   end
 
-  it "should have the right title" do         # Test auf die richtige Bezeichnung im Titel
-  get 'home'
-  response.should have_selector("title",
-                    :content =>  "MLCLSP-App | Home")
-  end
+    describe "GET 'about'" do
+      it "should be successful" do
+        get 'about'
+        response.should be_success
+      end
+
+
+      it "should have the right title" do
+        get 'about'
+        response.should have_selector("title",
+                    :content =>  "About")
+      end
+    end
 end
