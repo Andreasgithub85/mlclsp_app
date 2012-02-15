@@ -5,7 +5,8 @@ class Product < ActiveRecord::Base
   attr_accessible :product_name, :leadtime_shift, :resource, :setup_time, :setup_cost, :storage_cost, :working_time, :start_inventory
 
   validates :product_name, :presence => true,
-                   :length => { :maximum => 15 }
+                   :length => { :maximum => 15 },
+                   :uniqueness => { :case_sensitive => false }
 
   validates :leadtime_shift, :presence => true,
                    :length => { :maximum => 5 },

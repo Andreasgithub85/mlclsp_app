@@ -6,5 +6,6 @@ class Period < ActiveRecord::Base
 
   validates :period_name, :presence => true,
                    :length => { :maximum => 5 },
-                   :numericality => { :only_integer => true}
+                   :numericality => { :only_integer => true},
+                   :uniqueness => { :case_sensitive => false }
 end

@@ -4,6 +4,7 @@ class Follower < ActiveRecord::Base
   attr_accessible :follower_name
 
   validates :follower_name, :presence => true,
-                   :length => { :maximum => 15 }
+                   :length => { :maximum => 15 },
+                   :uniqueness => { :case_sensitive => false }
 
 end

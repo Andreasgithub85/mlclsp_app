@@ -12,5 +12,5 @@ class FollowerProduct < ActiveRecord::Base
                    :length => { :maximum => 5 }
 
   validates :product_id, :presence => true,
-                   :length => { :maximum => 10 }
+                   :length => { :maximum => 5 }
 end

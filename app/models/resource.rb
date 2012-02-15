@@ -4,5 +4,6 @@ class Resource < ActiveRecord::Base
   attr_accessible :resource_name
 
   validates :resource_name, :presence => true,
-                   :length => { :maximum => 15 }
+                   :length => { :maximum => 15 },
+                   :uniqueness => { :case_sensitive => false }
 end
